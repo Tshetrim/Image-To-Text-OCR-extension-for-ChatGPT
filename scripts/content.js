@@ -85,6 +85,7 @@ function addUploadButton() {
 	let container = document.createElement("div");
 	container.style.display = "flex";
 	container.style.alignItems = "center";
+	container.id = "flexbox-container-tesseract-extension";
 
 	// create a new button element
 	let btn = document.createElement("button");
@@ -135,16 +136,17 @@ function addUploadButton() {
 	if (textarea) {
 		// get the parent of the textarea
 		let parent = textarea.parentNode;
+		let parent2 = parent.parentNode;
 
 		// insert the flexbox container into the parent before the textarea
-		parent.insertBefore(container, textarea);
+		parent2.insertBefore(container, parent);
 
 		// add the button and the hidden file input to the flexbox container
 		container.appendChild(btn);
 		container.appendChild(fileInput);
 
 		// move the textarea into the flexbox container
-		container.appendChild(textarea);
+		container.appendChild(parent);
 	} else {
 		console.log("Textarea not found.");
 	}
@@ -172,7 +174,7 @@ async function createWorker() {
 						setTimeout(function () {
 							// remove the progress bar after 5 seconds
 							progressBar.parentElement.remove();
-						}, 3500);
+						}, 800);
 					}
 				}
 			}
@@ -190,7 +192,7 @@ async function createWorker() {
 async function handleFile(file, worker) {
 	console.log("handling the file");
 
-	let btn = document.getElementById("upload-button-tesseract-extension");
+	let textareaContainer = document.getElementById("flexbox-container-tesseract-extension");
 
 	// Get the textarea element
 	let textarea = document.getElementById("prompt-textarea");
@@ -201,8 +203,8 @@ async function handleFile(file, worker) {
 		return;
 	}
 
-	// get the parent of the textarea
-	let parent = textarea.parentNode;
+	// get the parent of the container
+	let parent = textareaContainer.parentNode;
 
 	// create progress bar and insert it before the button
 	let progressBarContainer = document.createElement("div");
@@ -222,7 +224,7 @@ async function handleFile(file, worker) {
 	progressBar.textContent = ""; // initial progress text (empty because no progress has been made yet)
 
 	progressBarContainer.appendChild(progressBar); // add the progress bar to the container
-	parent.insertBefore(progressBarContainer, btn);
+	parent.insertBefore(progressBarContainer, textareaContainer);
 
 	(async () => {
 		// console.log(worker);
