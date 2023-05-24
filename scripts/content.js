@@ -81,22 +81,31 @@ function addPasteListener() {
 }
 
 function addUploadButton() {
+	// create a new div for flexbox container
+	let container = document.createElement("div");
+	container.style.display = "flex";
+	container.style.alignItems = "center";
+
 	// create a new button element
 	let btn = document.createElement("button");
 	btn.id = "upload-button-tesseract-extension";
-	btn.textContent = "Upload file";
+
+	// set button's icon as an image
+	let btnIcon = document.createElement("img");
+	btnIcon.src = "chrome-extension://ifdljnflelndiehjmknfkeimhcfoadeo/images/upload-icon.png"; // change to your image path
+	btnIcon.alt = "Upload image";
+	btnIcon.style.height = "16px";
+	btnIcon.style.width = "16px";
+	btn.appendChild(btnIcon);
 
 	// style the button
-	btn.style.backgroundColor = "green";
-	btn.style.color = "white";
-	btn.style.borderRadius = "8px";
-	btn.style.padding = "10px";
+	btn.style.backgroundColor = "#000080"; // dark blue background
 	btn.style.border = "none";
 	btn.style.cursor = "pointer";
 	btn.style.outline = "none";
-	btn.style.fontSize = "16px";
+	btn.style.padding = "5px";
+	btn.style.marginRight = "10px"; // add some margin to separate from the textarea
 	btn.style.zIndex = "1";
-	btn.style.marginBottom = "12px";
 
 	// create a hidden file input
 	let fileInput = document.createElement("input");
@@ -127,9 +136,15 @@ function addUploadButton() {
 		// get the parent of the textarea
 		let parent = textarea.parentNode;
 
-		// add the button to the parent of the textarea, before the textarea
-		parent.insertBefore(btn, textarea);
-		parent.insertBefore(fileInput, textarea);
+		// insert the flexbox container into the parent before the textarea
+		parent.insertBefore(container, textarea);
+
+		// add the button and the hidden file input to the flexbox container
+		container.appendChild(btn);
+		container.appendChild(fileInput);
+
+		// move the textarea into the flexbox container
+		container.appendChild(textarea);
 	} else {
 		console.log("Textarea not found.");
 	}
@@ -233,20 +248,25 @@ async function handleFile(file, worker) {
 	})();
 }
 
-// Function to calculate the indentation based on bounding box data
 function calculateIndentation(data) {
 	let indentedText = "";
 
 	for (const block of data.blocks) {
 		for (const paragraph of block.paragraphs) {
 			for (const line of paragraph.lines) {
-				let numChars = line.text.replace(/\s/g, "").length; // count number of non-space characters in the line
+				// Check if line ends with a newline and if so, remove it
+				let text = line.text;
+				if (text.endsWith("\n")) {
+					text = text.slice(0, -1);
+				}
+
+				let numChars = text.replace(/\s/g, "").length; // count number of non-space characters in the line
 				let bboxWidth = line.bbox.x1 - line.bbox.x0; // calculate the width of the bounding box
 				let charWidth = numChars > 0 ? bboxWidth / numChars : 0; // calculate the average character width, avoid divide by zero
 
 				let indentation = line.bbox.x0; // x0 gives the x-coordinate of the left edge of the bounding box
 				let spaces = charWidth > 0 ? Math.floor(indentation / charWidth) : 0; // calculate number of spaces for indentation, avoid divide by zero
-				indentedText += " ".repeat(spaces) + line.text; // append a newline character after each line
+				indentedText += " ".repeat(spaces) + text + "\n"; // add a newline after each line of text
 			}
 		}
 	}
