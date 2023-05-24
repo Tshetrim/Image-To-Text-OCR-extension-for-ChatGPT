@@ -1,41 +1,86 @@
-// content.js
-// create a new button element
+const constants = {
+	scriptId: "image-to-text-content-script",
+	workerLanguage: "eng",
+	textareaId: "prompt-textarea",
+	uploadButtonID: "upload-button-image-to-text-extension",
+	uploadButtonBGColor: "#343640",
+  };
 
-// Load Tesseract.js onto the webpage
+// create an observer instance
+let observer = new MutationObserver(function (mutations) {
+	// mutations is an array of MutationRecords
+	// we'll just check if it has any items
+	if (mutations.length) {
+		if (!document.getElementById(constants.uploadButtonID)) {
+			// The button is not found, initialize again
+			initialize();
+		}
+	}
+});
 
-let worker;
-const script = document.createElement("script");
-script.src = chrome.runtime.getURL("scripts/tesseract.min.js");
-(document.head || document.documentElement).appendChild(script);
-
-script.onload = async function () {
-	console.log("Loaded script");
-	console.log(script.src);
-	addUploadButton();
-	addPasteListener();
-	// addCodeIframe();
-	worker = await createWorker();
+// configuration of the observer
+let config = {
+	childList: true, // track direct child addition or removal
+	subtree: true, // also look for changes in the descendants
 };
 
-// Load the Tesseract worker creation script
-const workerScript = document.createElement("script");
-workerScript.src = chrome.runtime.getURL("scripts/tesseractLoader.js");
-workerScript.onload = function () {
-	this.remove();
-};
-(document.head || document.documentElement).appendChild(workerScript);
+// pass in the target node (body in this case), as well as the observer options
+observer.observe(document.body, config);
 
-// Load the message listening script
-const messageListenerScript = document.createElement("script");
-messageListenerScript.src = chrome.runtime.getURL("scripts/messageListener.js");
-messageListenerScript.onload = function () {
-	this.remove();
-};
-(document.head || document.documentElement).appendChild(messageListenerScript);
+let initializingPromise = null;
+let worker = null;
+async function initialize() {
+	if (initializingPromise) {
+		// If initialization is already in progress, return the promise
+		return initializingPromise;
+	}
+
+	initializingPromise = new Promise(async (resolve, reject) => {
+		if (document.getElementById(constants.scriptId)) {
+			// console.log("Already loaded script");
+			try {
+				if (typeof worker === "undefined" || worker === null) {
+					// console.log("Worker is undefined or null");
+					worker = await createWorker();
+				}
+				addUploadButton();
+				addPasteListener();
+				resolve();
+			} catch (error) {
+				console.error("Error initializing worker: ", error);
+				reject(error);
+			}
+		} else {
+			const script = document.createElement("script");
+			script.id = constants.scriptId;
+			script.src = chrome.runtime.getURL("scripts/tesseract.min.js");
+			(document.head || document.documentElement).appendChild(script);
+
+			script.onload = async function () {
+				// console.log("Loaded script");
+				// console.log(script.src);
+				try {
+					worker = await createWorker();
+					addUploadButton();
+					addPasteListener();
+					resolve();
+				} catch (error) {
+					console.error("Error initializing worker: ", error);
+					reject(error);
+				}
+			};
+		}
+	}).finally(() => {
+		// console.log("finished init");
+		initializingPromise = null;
+	});
+	return initializingPromise;
+}
+
 
 function addCodeIframe() {
 	// get the textarea element
-	let textarea = document.getElementById("prompt-textarea");
+	let textarea = document.getElementById(constants.textareaId);
 
 	// check if the textarea exists
 	if (textarea) {
@@ -53,31 +98,33 @@ function addCodeIframe() {
 		// insert the iframe before the textarea
 		parent.insertBefore(iframe, textarea);
 	} else {
-		console.log("Textarea not found.");
+		// console.log("Textarea not found.");
 	}
 }
 
 function addPasteListener() {
 	// get the textarea element
-	let textarea = document.getElementById("prompt-textarea");
+	let textarea = document.getElementById(constants.textareaId);
 
 	// add paste event listener to textarea
-	textarea.addEventListener("paste", function (e) {
-		let clipboardData = e.clipboardData || window.clipboardData;
-		if (clipboardData) {
-			let items = clipboardData.items;
-			for (let i = 0; i < items.length; i++) {
-				if (items[i].type.indexOf("image") !== -1) {
-					// We need to call preventDefault to stop the image being pasted into the textarea
-					e.preventDefault();
-					let file = items[i].getAsFile();
-					console.log(file);
-					// file is selected, handle it
-					handleFile(file, worker);
+	if (textarea) {
+		textarea.addEventListener("paste", function (e) {
+			let clipboardData = e.clipboardData || window.clipboardData;
+			if (clipboardData) {
+				let items = clipboardData.items;
+				for (let i = 0; i < items.length; i++) {
+					if (items[i].type.indexOf("image") !== -1) {
+						// We need to call preventDefault to stop the image being pasted into the textarea
+						e.preventDefault();
+						let file = items[i].getAsFile();
+						// console.log(file);
+						// file is selected, handle it
+						handleFile(file, worker);
+					}
 				}
 			}
-		}
-	});
+		});
+	}
 }
 
 function addUploadButton() {
@@ -85,22 +132,22 @@ function addUploadButton() {
 	let container = document.createElement("div");
 	container.style.display = "flex";
 	container.style.alignItems = "center";
-	container.id = "flexbox-container-tesseract-extension";
+	container.id = "flexbox-container-image-to-text-extension";
 
 	// create a new button element
 	let btn = document.createElement("button");
-	btn.id = "upload-button-tesseract-extension";
+	btn.id = constants.uploadButtonID;
 
 	// set button's icon as an image
 	let btnIcon = document.createElement("img");
-	btnIcon.src = "chrome-extension://ifdljnflelndiehjmknfkeimhcfoadeo/images/upload-icon.png"; // change to your image path
+	btnIcon.src = "chrome-extension://ifdljnflelndiehjmknfkeimhcfoadeo/images/upload-icon-light.png"; // change to your image path
 	btnIcon.alt = "Upload image";
-	btnIcon.style.height = "16px";
-	btnIcon.style.width = "16px";
+	btnIcon.style.height = "24px";
+	btnIcon.style.width = "24px";
 	btn.appendChild(btnIcon);
 
 	// style the button
-	btn.style.backgroundColor = "#000080"; // dark blue background
+	btn.style.backgroundColor = constants.uploadButtonBGColor; // dark blue background
 	btn.style.border = "none";
 	btn.style.cursor = "pointer";
 	btn.style.outline = "none";
@@ -130,7 +177,7 @@ function addUploadButton() {
 	});
 
 	// get the textarea element
-	let textarea = document.getElementById("prompt-textarea");
+	let textarea = document.getElementById(constants.textareaId);
 
 	// check if the textarea exists
 	if (textarea) {
@@ -148,17 +195,17 @@ function addUploadButton() {
 		// move the textarea into the flexbox container
 		container.appendChild(parent);
 	} else {
-		console.log("Textarea not found.");
+		// console.log("Textarea not found.");
 	}
 }
 
 async function createWorker() {
 	const worker = await Tesseract.createWorker({
 		logger: (m) => {
-			// console.log(m);
+			console.log(m);
 			if (m.status === "recognizing text") {
 				// Update progress bar width and text to display loading status and progress
-				progressBar = document.getElementById("tesseract-progress-bar");
+				progressBar = document.getElementById("image-to-text-progress-bar");
 				if (progressBar) {
 					progressBar.style.width = `${m.progress * 100}%`;
 					let percentage = Math.round(m.progress * 100);
@@ -180,26 +227,26 @@ async function createWorker() {
 			}
 		},
 	});
-	await worker.loadLanguage("eng");
-	await worker.initialize("eng");
+	await worker.loadLanguage(constants.workerLanguage);
+	await worker.initialize(constants.workerLanguage);
 	await worker.setParameters({
 		preserve_interword_spaces: "1",
 	});
-	console.log(worker);
+	// console.log(worker);
 	return worker;
 }
 
 async function handleFile(file, worker) {
-	console.log("handling the file");
+	// console.log("handling the file");
 
-	let textareaContainer = document.getElementById("flexbox-container-tesseract-extension");
+	let textareaContainer = document.getElementById("flexbox-container-image-to-text-extension");
 
 	// Get the textarea element
 	let textarea = document.getElementById("prompt-textarea");
 
 	// check if the textarea exists
 	if (!textarea) {
-		console.log("Textarea not found.");
+		// console.log("Textarea not found.");
 		return;
 	}
 
@@ -216,7 +263,7 @@ async function handleFile(file, worker) {
 	progressBarContainer.style.overflow = "hidden"; // ensures inner bar stays within bounds
 
 	let progressBar = document.createElement("div");
-	progressBar.id = "tesseract-progress-bar";
+	progressBar.id = "image-to-text-progress-bar";
 	progressBar.style.height = "100%"; // make sure it fills up the entire container
 	progressBar.style.width = "0%"; // initial width of the progress bar (0% because no progress has been made yet)
 	progressBar.style.textAlign = "center"; // center the progress text
@@ -227,17 +274,17 @@ async function handleFile(file, worker) {
 	parent.insertBefore(progressBarContainer, textareaContainer);
 
 	(async () => {
-		// console.log(worker);
+		console.log(worker);
 		const { data } = await worker.recognize(file, { rectangle: true });
-		const indentedText = calculateIndentation(data);
-		// console.log(text);
+		const text = calculateIndentation(data);
+		// console.log(data);
 
 		// Get the textarea element
-		let textarea = document.getElementById("prompt-textarea");
+		let textarea = document.getElementById(constants.textareaId);
 
 		// If the textarea exists, set its value to the recognized text
 		if (textarea) {
-			textarea.value = textarea.value + indentedText;
+			textarea.value = textarea.value + text;
 
 			textarea.style.height = ""; // Reset the height
 			textarea.style.height = textarea.scrollHeight + "px"; // Set it to match the total content height
@@ -245,7 +292,7 @@ async function handleFile(file, worker) {
 			// Set cursor position at the end of the text
 			textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
 		} else {
-			console.log("Textarea not found.");
+			// console.log("Textarea not found.");
 		}
 	})();
 }
