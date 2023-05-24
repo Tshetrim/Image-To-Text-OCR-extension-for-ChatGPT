@@ -242,11 +242,11 @@ function calculateIndentation(data) {
 			for (const line of paragraph.lines) {
 				let numChars = line.text.replace(/\s/g, "").length; // count number of non-space characters in the line
 				let bboxWidth = line.bbox.x1 - line.bbox.x0; // calculate the width of the bounding box
-				let charWidth = numChars > 0 ? bboxWidth / numChars : 0; // calculate the average character width
+				let charWidth = numChars > 0 ? bboxWidth / numChars : 0; // calculate the average character width, avoid divide by zero
 
 				let indentation = line.bbox.x0; // x0 gives the x-coordinate of the left edge of the bounding box
-				let spaces = Math.floor(indentation / charWidth); // calculate number of spaces for indentation
-				indentedText += " ".repeat(spaces) + line.text;
+				let spaces = charWidth > 0 ? Math.floor(indentation / charWidth) : 0; // calculate number of spaces for indentation, avoid divide by zero
+				indentedText += " ".repeat(spaces) + line.text; // append a newline character after each line
 			}
 		}
 	}
