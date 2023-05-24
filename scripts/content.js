@@ -211,9 +211,8 @@ async function handleFile(file, worker) {
 
 	(async () => {
 		// console.log(worker);
-		const {
-			data: { text },
-		} = await worker.recognize(file);
+		const { data } = await worker.recognize(file, { rectangle: true });
+		const indentedText = calculateIndentation(data);
 		// console.log(text);
 
 		// Get the textarea element
@@ -221,7 +220,7 @@ async function handleFile(file, worker) {
 
 		// If the textarea exists, set its value to the recognized text
 		if (textarea) {
-			textarea.value = textarea.value + text;
+			textarea.value = textarea.value + indentedText;
 
 			textarea.style.height = ""; // Reset the height
 			textarea.style.height = textarea.scrollHeight + "px"; // Set it to match the total content height
@@ -232,4 +231,25 @@ async function handleFile(file, worker) {
 			console.log("Textarea not found.");
 		}
 	})();
+}
+
+// Function to calculate the indentation based on bounding box data
+function calculateIndentation(data) {
+	let indentedText = "";
+
+	for (const block of data.blocks) {
+		for (const paragraph of block.paragraphs) {
+			for (const line of paragraph.lines) {
+				let numChars = line.text.replace(/\s/g, "").length; // count number of non-space characters in the line
+				let bboxWidth = line.bbox.x1 - line.bbox.x0; // calculate the width of the bounding box
+				let charWidth = numChars > 0 ? bboxWidth / numChars : 0; // calculate the average character width
+
+				let indentation = line.bbox.x0; // x0 gives the x-coordinate of the left edge of the bounding box
+				let spaces = Math.floor(indentation / charWidth); // calculate number of spaces for indentation
+				indentedText += " ".repeat(spaces) + line.text;
+			}
+		}
+	}
+
+	return indentedText;
 }
