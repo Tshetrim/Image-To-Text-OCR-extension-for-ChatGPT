@@ -1,17 +1,25 @@
+const options = {
+	formatOutput: true,
+	showUploadButton: true,
+	enableDirectPasting: true,
+	useThirdPartyOCR: false,
+};
+
 const constants = {
 	scriptId: "image-to-text-content-script",
 	workerLanguage: "eng",
 	textareaId: "prompt-textarea",
 	uploadButtonID: "upload-button-image-to-text-extension",
 	uploadButtonBGColor: "#343640",
-  };
+	flexBoxContainerId: "flexbox-container-image-to-text-extension",
+};
 
 // create an observer instance
 let observer = new MutationObserver(function (mutations) {
 	// mutations is an array of MutationRecords
 	// we'll just check if it has any items
 	if (mutations.length) {
-		if (!document.getElementById(constants.uploadButtonID)) {
+		if (!document.getElementById(constants.flexBoxContainerId)) {
 			// The button is not found, initialize again
 			initialize();
 		}
@@ -24,8 +32,32 @@ let config = {
 	subtree: true, // also look for changes in the descendants
 };
 
-// pass in the target node (body in this case), as well as the observer options
-observer.observe(document.body, config);
+function getStorageData(keys) {
+	return new Promise((resolve, reject) => {
+		chrome.storage.local.get(keys, function (result) {
+			if (chrome.runtime.lastError) {
+				reject(chrome.runtime.lastError);
+			} else {
+				resolve(result);
+			}
+		});
+	});
+}
+
+getStorageData(Object.keys(options))
+	.then((result) => {
+		// If options are not set in storage, use default values
+		Object.keys(options).forEach((optionKey) => {
+			options[optionKey] = result.hasOwnProperty(optionKey) ? result[optionKey] : options[optionKey];
+		});
+
+		// console.log("Options: ", options);
+		// start observing after initialization
+		observer.observe(document.body, config);
+	})
+	.catch((error) => {
+		console.error("Error getting data from storage: ", error);
+	});
 
 let initializingPromise = null;
 let worker = null;
@@ -44,7 +76,8 @@ async function initialize() {
 					worker = await createWorker();
 				}
 				addUploadButton();
-				addPasteListener();
+				if (options.enableDirectPasting) addPasteListener();
+				if (options.useThirdPartyOCR) addCodeIframe();
 				resolve();
 			} catch (error) {
 				console.error("Error initializing worker: ", error);
@@ -62,7 +95,8 @@ async function initialize() {
 				try {
 					worker = await createWorker();
 					addUploadButton();
-					addPasteListener();
+					if (options.enableDirectPasting) addPasteListener();
+					if (options.useThirdPartyOCR) addCodeIframe();
 					resolve();
 				} catch (error) {
 					console.error("Error initializing worker: ", error);
@@ -77,7 +111,6 @@ async function initialize() {
 	return initializingPromise;
 }
 
-
 function addCodeIframe() {
 	// get the textarea element
 	let textarea = document.getElementById(constants.textareaId);
@@ -89,17 +122,45 @@ function addCodeIframe() {
 
 		// create the iframe element
 		let iframe = document.createElement("iframe");
+		iframe.id = "third-party-ocr-iframe";
 		iframe.width = "100%";
 		iframe.height = "500px";
 		iframe.src = "https://code-from-screenshot-lmuw6mcn3q-uc.a.run.app/";
 		iframe.frameborder = "0";
 		iframe.allow = "clipboard-read; clipboard-write";
 
-		// insert the iframe before the textarea
-		parent.insertBefore(iframe, textarea);
+		// create the button element
+		let button = getToggleIframeButton(iframe);
+
+		// insert the button before the iframe
+		parent.insertBefore(button, textarea);
+
+		// insert the iframe after the button
+		parent.insertBefore(iframe, button.nextSibling);
+
 	} else {
-		// console.log("Textarea not found.");
+		console.log("Textarea not found.");
 	}
+}
+
+function getToggleIframeButton(iframe) {
+	let button = document.createElement("button");
+	button.id = "toggle-iframe";
+	button.innerText = "Toggle iFrame";
+
+	button.addEventListener("click", function () {
+		console.log("clicked");
+		console.log(iframe);
+		// If the iframe is not null, toggle its visibility
+		if (iframe) {
+			if (iframe.style.display === "none") {
+				iframe.style.display = "block";
+			} else {
+				iframe.style.display = "none";
+			}
+		}
+	});
+	return button;
 }
 
 function addPasteListener() {
@@ -132,7 +193,7 @@ function addUploadButton() {
 	let container = document.createElement("div");
 	container.style.display = "flex";
 	container.style.alignItems = "center";
-	container.id = "flexbox-container-image-to-text-extension";
+	container.id = constants.flexBoxContainerId;
 
 	// create a new button element
 	let btn = document.createElement("button");
@@ -189,8 +250,8 @@ function addUploadButton() {
 		parent2.insertBefore(container, parent);
 
 		// add the button and the hidden file input to the flexbox container
-		container.appendChild(btn);
-		container.appendChild(fileInput);
+		if (options.showUploadButton) container.appendChild(btn);
+		if (options.showUploadButton) container.appendChild(fileInput);
 
 		// move the textarea into the flexbox container
 		container.appendChild(parent);
@@ -202,7 +263,7 @@ function addUploadButton() {
 async function createWorker() {
 	const worker = await Tesseract.createWorker({
 		logger: (m) => {
-			console.log(m);
+			// console.log(m);
 			if (m.status === "recognizing text") {
 				// Update progress bar width and text to display loading status and progress
 				progressBar = document.getElementById("image-to-text-progress-bar");
@@ -230,7 +291,7 @@ async function createWorker() {
 	await worker.loadLanguage(constants.workerLanguage);
 	await worker.initialize(constants.workerLanguage);
 	await worker.setParameters({
-		preserve_interword_spaces: "1",
+		preserve_interword_spaces: options.formatOutput ? "1" : "0",
 	});
 	// console.log(worker);
 	return worker;
@@ -239,8 +300,8 @@ async function createWorker() {
 async function handleFile(file, worker) {
 	// console.log("handling the file");
 
-	let textareaContainer = document.getElementById("flexbox-container-image-to-text-extension");
-
+	let textareaContainer = document.getElementById(constants.flexBoxContainerId);
+	console.log(textareaContainer);
 	// Get the textarea element
 	let textarea = document.getElementById("prompt-textarea");
 
@@ -274,9 +335,15 @@ async function handleFile(file, worker) {
 	parent.insertBefore(progressBarContainer, textareaContainer);
 
 	(async () => {
-		console.log(worker);
-		const { data } = await worker.recognize(file, { rectangle: true });
-		const text = calculateIndentation(data);
+		// console.log(worker);
+		let text = "";
+		if (options.formatOutput) {
+			const { data } = await worker.recognize(file, { rectangle: true });
+			text = calculateIndentation(data);
+		} else {
+			const { data } = await worker.recognize(file);
+			text = data.text;
+		}
 		// console.log(data);
 
 		// Get the textarea element

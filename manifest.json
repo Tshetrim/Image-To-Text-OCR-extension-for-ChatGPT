@@ -7,36 +7,16 @@
 		"default_popup": "popup.html",
 		"default_icon": "icon.png"
 	},
-	"permissions": ["scripting", "activeTab", "tabs", "webNavigation"],
-	"host_permissions": ["https://chat.openai.com/*"],
+	"permissions": ["scripting", "activeTab", "storage"],
 	"icons": {
 		"16": "images/icon-16.png",
 		"32": "images/icon-32.png",
 		"48": "images/icon-48.png",
 		"128": "images/icon-128.png"
 	},
-	"background": {
-		"service_worker": "background.js"
-	},
 	"web_accessible_resources": [
 		{
-			"resources": [
-				"js/worker.min.js",
-				"js/tessearct-core.wasm.js",
-				"js/tesseract.min.js",
-				"traineddata/*.traineddata.gz"
-			],
-			"matches": ["https://chat.openai.com/*"],
-			"extension_ids": ["*"],
-			"use_dynamic_url": true
-		},
-		{
-			"resources": ["scripts/tesseractLoader.js", "scripts/messageListener.js", "scripts/tesseract.min.js"],
-			"matches": ["https://chat.openai.com/*"],
-			"use_dynamic_url": true
-		},
-		{
-			"resources": ["images/*"],
+			"resources": ["scripts/tesseract.min.js", "traineddata/*.traineddata.gz", "images/*"],
 			"matches": ["https://chat.openai.com/*"],
 			"use_dynamic_url": true
 		}
@@ -46,12 +26,7 @@
 	},
 	"content_scripts": [
 		{
-			"js": [
-				"scripts/content.js",
-				"scripts/tesseractLoader.js",
-				"scripts/messageListener.js",
-				"scripts/tesseract.min.js"
-			],
+			"js": ["scripts/content.js", "scripts/tesseract.min.js"],
 			"matches": ["https://chat.openai.com/*"]
 		}
 	]

@@ -2,16 +2,101 @@
 <html>
 	<head>
 		<title>Image to Text for ChatGPT Extension</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 0;
+				padding: 0;
+				background-color: #f0f0f0;
+			}
+			h1 {
+				color: #333;
+				background-color: #f9f9f9;
+				padding: 15px;
+				margin: 0;
+				border-bottom: 1px solid #ddd;
+			}
+			form {
+				margin: 15px;
+			}
+			.checkbox-option {
+				margin-bottom: 10px;
+			}
+			#save-button {
+				background-color: #4caf50; /* Green */
+				border: none;
+				color: white;
+				padding: 10px 20px;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 16px;
+				margin: 10px 2px;
+				cursor: pointer;
+			}
+			#notification {
+				padding: 15px;
+				background-color: #dff0d8;
+				color: #3c763d;
+				border: 1px solid #d6e9c6;
+				border-radius: 5px;
+				display: none; /* hidden by default */
+			}
+			footer {
+				bottom: 0;
+				width: 100%;
+				background-color: #f9f9f9;
+				border-top: 1px solid #ddd;
+				padding: 10px 0;
+				text-align: center;
+			}
+			.footer-button {
+				background-color: #008cba;
+				border: none;
+				color: white;
+				padding: 10px 20px;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 16px;
+				margin: 5px;
+				cursor: pointer;
+				transition-duration: 0.4s;
+				width: 50%;
+			}
+			.footer-button:hover {
+				background-color: white;
+				color: black;
+			}
+		</style>
 	</head>
 	<body>
-		<h1>Image to Text Extension</h1>
+		<h1>Image to Text for ChatGPT</h1>
 		<form>
-			<input type="file" id="image-file" accept="image/*" />
-			<br />
-			<textarea id="result" rows="10" cols="50" disabled></textarea>
-			<br />
-			<button type="button" id="submit-button">Submit</button>
+			<h3>Options:</h3>
+			<div class="checkbox-option">
+				<input type="checkbox" id="formatOutput" name="format-output" />
+				<label for="format-output">Try to perserve image spacing</label><br />
+			</div>
+			<div class="checkbox-option">
+				<input type="checkbox" id="showUploadButton" name="show-upload-button" />
+				<label for="show-upload-button">Show Upload Button</label><br />
+			</div>
+			<div class="checkbox-option">
+				<input type="checkbox" id="enableDirectPasting" name="enable-direct-pasting" />
+				<label for="enable-direct-pasting">Enable Direct Image Pasting</label><br />
+			</div>
+			<div class="checkbox-option">
+				<input type="checkbox" id="useThirdPartyOCR" name="use-third-party-ocr" />
+				<label for="use-third-party-ocr">Use outside advanced code-from-screenshot parser</label><br />
+			</div>
+			<button type="button" id="save-button">Save</button>
 		</form>
+		<div id="notification"></div>
 	</body>
-	<script src="script.js"></script>
+	<footer>
+		<a class="footer-button" href="https://github.com/tshetrim" target="_blank">GitHub</a>
+		<!-- <a class="footer-button" href="https://www.buymeacoffee.com/yourusername" target="_blank">Buy Me a Coffee</a> -->
+	</footer>
+	<script src="popup.js"></script>
 </html>
