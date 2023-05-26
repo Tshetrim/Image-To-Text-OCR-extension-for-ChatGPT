@@ -200,7 +200,7 @@ function addUploadButton() {
 
 	// set button's icon as an image
 	let btnIcon = document.createElement("img");
-	btnIcon.src = "chrome-extension://ifdljnflelndiehjmknfkeimhcfoadeo/images/upload-icon-light.png"; // change to your image path
+	btnIcon.src = chrome.runtime.getURL("images/upload-icon-light.png"); // change to your image path
 	btnIcon.alt = "Upload image";
 	btnIcon.style.height = "24px";
 	btnIcon.style.width = "24px";
