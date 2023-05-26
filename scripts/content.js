@@ -137,7 +137,6 @@ function addCodeIframe() {
 
 		// insert the iframe after the button
 		parent.insertBefore(iframe, button.nextSibling);
-
 	} else {
 		console.log("Textarea not found.");
 	}
@@ -149,8 +148,8 @@ function getToggleIframeButton(iframe) {
 	button.innerText = "Toggle iFrame";
 
 	button.addEventListener("click", function () {
-		console.log("clicked");
-		console.log(iframe);
+		// console.log("clicked");
+		// console.log(iframe);
 		// If the iframe is not null, toggle its visibility
 		if (iframe) {
 			if (iframe.style.display === "none") {
@@ -301,7 +300,7 @@ async function handleFile(file, worker) {
 	// console.log("handling the file");
 
 	let textareaContainer = document.getElementById(constants.flexBoxContainerId);
-	console.log(textareaContainer);
+	// console.log(textareaContainer);
 	// Get the textarea element
 	let textarea = document.getElementById("prompt-textarea");
 
