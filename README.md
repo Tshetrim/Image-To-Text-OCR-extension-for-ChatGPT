@@ -1,0 +1,1 @@
+# Image-To-Text-OCR-extension-for-ChatGPT
