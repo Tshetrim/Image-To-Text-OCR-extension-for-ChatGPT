@@ -1,11 +1,11 @@
-const options = {
+const OPTIONS = {
 	formatOutput: true,
 	showUploadButton: true,
 	enableDirectPasting: true,
 	useThirdPartyOCR: false,
 };
 
-const constants = {
+const CONSTANTS = {
 	scriptId: "image-to-text-content-script",
 	workerLanguage: "eng",
 	textareaId: "prompt-textarea",
@@ -14,20 +14,43 @@ const constants = {
 	flexBoxContainerId: "flexbox-container-image-to-text-extension",
 };
 
+const CONFIG = {
+	debug: false, // set this to false for production
+};
+
+function log() {
+	if (CONFIG.debug) {
+		console.log.apply(console, arguments);
+	}
+}
+
 // create an observer instance
 let observer = new MutationObserver(function (mutations) {
 	// mutations is an array of MutationRecords
 	// we'll just check if it has any items
 	if (mutations.length) {
-		if (!document.getElementById(constants.flexBoxContainerId)) {
-			// The button is not found, initialize again
-			initialize();
+		let textareaElement = document.getElementById(CONSTANTS.textareaId);
+		let shouldInitialize = false;
+		if (!textareaElement) {
+			// The textArea is not found, initialize again
+			shouldInitialize = true;
 		}
+		if (OPTIONS.enableDirectPasting && textareaElement && !textareaElement.hasPasteListener) {
+			shouldInitialize = true;
+		}
+		if (OPTIONS.showUploadButton) {
+			const hasUploadButton = document.getElementById(CONSTANTS.uploadButtonID);
+			if (!hasUploadButton) {
+				shouldInitialize = true;
+			}
+		}
+
+		if (shouldInitialize) initialize();
 	}
 });
 
 // configuration of the observer
-let config = {
+let observerConfig = {
 	childList: true, // track direct child addition or removal
 	subtree: true, // also look for changes in the descendants
 };
@@ -44,16 +67,16 @@ function getStorageData(keys) {
 	});
 }
 
-getStorageData(Object.keys(options))
+getStorageData(Object.keys(OPTIONS))
 	.then((result) => {
 		// If options are not set in storage, use default values
-		Object.keys(options).forEach((optionKey) => {
-			options[optionKey] = result.hasOwnProperty(optionKey) ? result[optionKey] : options[optionKey];
+		Object.keys(OPTIONS).forEach((optionKey) => {
+			OPTIONS[optionKey] = result.hasOwnProperty(optionKey) ? result[optionKey] : OPTIONS[optionKey];
 		});
 
-		// console.log("Options: ", options);
+		log("Options: ", OPTIONS);
 		// start observing after initialization
-		observer.observe(document.body, config);
+		observer.observe(document.body, observerConfig);
 	})
 	.catch((error) => {
 		console.error("Error getting data from storage: ", error);
@@ -68,16 +91,10 @@ async function initialize() {
 	}
 
 	initializingPromise = new Promise(async (resolve, reject) => {
-		if (document.getElementById(constants.scriptId)) {
-			// console.log("Already loaded script");
+		if (document.getElementById(CONSTANTS.scriptId)) {
+			log("Already loaded script");
 			try {
-				if (typeof worker === "undefined" || worker === null) {
-					// console.log("Worker is undefined or null");
-					worker = await createWorker();
-				}
-				addUploadButton();
-				if (options.enableDirectPasting) addPasteListener();
-				if (options.useThirdPartyOCR) addCodeIframe();
+				await addExtensionElements((initial = false));
 				resolve();
 			} catch (error) {
 				console.error("Error initializing worker: ", error);
@@ -85,18 +102,15 @@ async function initialize() {
 			}
 		} else {
 			const script = document.createElement("script");
-			script.id = constants.scriptId;
+			script.id = CONSTANTS.scriptId;
 			script.src = chrome.runtime.getURL("scripts/tesseract.min.js");
 			(document.head || document.documentElement).appendChild(script);
 
 			script.onload = async function () {
-				// console.log("Loaded script");
-				// console.log(script.src);
+				log("Loaded script");
+				log(script.src);
 				try {
-					worker = await createWorker();
-					addUploadButton();
-					if (options.enableDirectPasting) addPasteListener();
-					if (options.useThirdPartyOCR) addCodeIframe();
+					await addExtensionElements((initial = true));
 					resolve();
 				} catch (error) {
 					console.error("Error initializing worker: ", error);
@@ -105,15 +119,32 @@ async function initialize() {
 			};
 		}
 	}).finally(() => {
-		// console.log("finished init");
+		log("finished init");
 		initializingPromise = null;
 	});
 	return initializingPromise;
 }
 
+async function addExtensionElements(initial = true) {
+	log("initial: ", initial);
+	log("initial worker: ", worker);
+	if (initial) {
+		worker = await createWorker();
+	} else {
+		if (typeof worker === "undefined" || worker === null) {
+			log("Worker is undefined or null");
+			worker = await createWorker();
+		}
+	}
+	log("post adding worker: ", worker);
+	if (OPTIONS.showUploadButton) addUploadButton();
+	if (OPTIONS.enableDirectPasting) addPasteListener();
+	if (OPTIONS.useThirdPartyOCR) addCodeIframe();
+}
+
 function addCodeIframe() {
 	// get the textarea element
-	let textarea = document.getElementById(constants.textareaId);
+	let textarea = document.getElementById(CONSTANTS.textareaId);
 
 	// check if the textarea exists
 	if (textarea) {
@@ -138,7 +169,7 @@ function addCodeIframe() {
 		// insert the iframe after the button
 		parent.insertBefore(iframe, button.nextSibling);
 	} else {
-		console.log("Textarea not found.");
+		log("Textarea not found.");
 	}
 }
 
@@ -148,8 +179,8 @@ function getToggleIframeButton(iframe) {
 	button.innerText = "Toggle iFrame";
 
 	button.addEventListener("click", function () {
-		// console.log("clicked");
-		// console.log(iframe);
+		log("clicked");
+		log(iframe);
 		// If the iframe is not null, toggle its visibility
 		if (iframe) {
 			if (iframe.style.display === "none") {
@@ -162,41 +193,40 @@ function getToggleIframeButton(iframe) {
 	return button;
 }
 
+function handlePaste(e) {
+	let clipboardData = e.clipboardData || window.clipboardData;
+	if (clipboardData) {
+		let items = clipboardData.items;
+		for (let i = 0; i < items.length; i++) {
+			if (items[i].type.indexOf("image") !== -1) {
+				// We need to call preventDefault to stop the image being pasted into the textarea
+				e.preventDefault();
+				let file = items[i].getAsFile();
+				log(file);
+				// file is selected, handle it
+				handleFile(file, worker);
+			}
+		}
+	}
+}
+
 function addPasteListener() {
 	// get the textarea element
-	let textarea = document.getElementById(constants.textareaId);
+	let textarea = document.getElementById(CONSTANTS.textareaId);
 
 	// add paste event listener to textarea
 	if (textarea) {
-		textarea.addEventListener("paste", function (e) {
-			let clipboardData = e.clipboardData || window.clipboardData;
-			if (clipboardData) {
-				let items = clipboardData.items;
-				for (let i = 0; i < items.length; i++) {
-					if (items[i].type.indexOf("image") !== -1) {
-						// We need to call preventDefault to stop the image being pasted into the textarea
-						e.preventDefault();
-						let file = items[i].getAsFile();
-						// console.log(file);
-						// file is selected, handle it
-						handleFile(file, worker);
-					}
-				}
-			}
-		});
+		textarea.addEventListener("paste", handlePaste);
+		textarea.hasPasteListener = true;
 	}
 }
 
 function addUploadButton() {
-	// create a new div for flexbox container
-	let container = document.createElement("div");
-	container.style.display = "flex";
-	container.style.alignItems = "center";
-	container.id = constants.flexBoxContainerId;
+	let textarea = document.getElementById(CONSTANTS.textareaId);
 
 	// create a new button element
 	let btn = document.createElement("button");
-	btn.id = constants.uploadButtonID;
+	btn.id = CONSTANTS.uploadButtonID;
 
 	// set button's icon as an image
 	let btnIcon = document.createElement("img");
@@ -207,13 +237,14 @@ function addUploadButton() {
 	btn.appendChild(btnIcon);
 
 	// style the button
-	btn.style.backgroundColor = constants.uploadButtonBGColor; // dark blue background
+	btn.style.backgroundColor = CONSTANTS.uploadButtonBGColor; // dark blue background 
 	btn.style.border = "none";
 	btn.style.cursor = "pointer";
 	btn.style.outline = "none";
 	btn.style.padding = "5px";
 	btn.style.marginRight = "10px"; // add some margin to separate from the textarea
 	btn.style.zIndex = "1";
+	btn.style.height = textarea.height;
 
 	// create a hidden file input
 	let fileInput = document.createElement("input");
@@ -236,33 +267,84 @@ function addUploadButton() {
 		}
 	});
 
-	// get the textarea element
-	let textarea = document.getElementById(constants.textareaId);
-
-	// check if the textarea exists
+	// check if the textarea exists and add button
 	if (textarea) {
-		// get the parent of the textarea
-		let parent = textarea.parentNode;
-		let parent2 = parent.parentNode;
-
-		// insert the flexbox container into the parent before the textarea
-		parent2.insertBefore(container, parent);
-
-		// add the button and the hidden file input to the flexbox container
-		if (options.showUploadButton) container.appendChild(btn);
-		if (options.showUploadButton) container.appendChild(fileInput);
-
-		// move the textarea into the flexbox container
-		container.appendChild(parent);
+		addButton(btn, fileInput, textarea);
+		// addButtonWithFlexBox(btn, fileInput);
 	} else {
-		// console.log("Textarea not found.");
+		log("Textarea not found.");
 	}
+}
+
+function addButton(btn, fileInput) {
+	let textarea = document.getElementById(CONSTANTS.textareaId);
+
+	// get the parent of the textarea
+	let parent = textarea.parentNode;
+	let parent2 = parent.parentNode;
+	let parent3 = parent2.parentNode;
+
+	let container = parent3;
+	// insert the button and the hidden file input before the textarea
+	// container.appendChild(btn);
+	// container.appendChild(fileInput);
+
+	container.insertBefore(btn, parent2);
+	container.insertBefore(fileInput, parent2);
+	recenterUploadButton();
+}
+
+function recenterUploadButton() {
+	let textarea = document.getElementById(CONSTANTS.textareaId);
+	let btn = document.getElementById(CONSTANTS.uploadButtonID);
+	// get the parent of the textarea
+	if (textarea && btn) {
+		let parent = textarea.parentNode;
+		let parent2 = parent?.parentNode;
+		let parent3 = parent2?.parentNode;
+		let container = parent3;
+		if (container) {
+			btn.style.marginTop = container.offsetHeight - textarea.parentNode.offsetHeight + "px"; //40px
+			log("offset height", container.offsetHeight - textarea.parentNode.offsetHeight);
+			log("Container height", container.offsetHeight);
+			log("textarea height", textarea.parentNode.offsetHeight);
+		}
+	}
+}
+
+// adding with flexbox broke after ChatGPT updated UI to add some sort of element before the textarea
+function addFlexBox() {
+	// create a new div for flexbox container
+	let container = document.createElement("div");
+	container.style.display = "flex";
+	container.style.alignItems = "center";
+	container.id = CONSTANTS.flexBoxContainerId;
+	return container;
+}
+
+function addButtonWithFlexBox(btn, fileInput) {
+	let container = document.getElementById(CONSTANTS.flexBoxContainerId) || addFlexBox();
+	let textarea = document.getElementById(CONSTANTS.textareaId);
+
+	// get the parent of the textarea
+	let parent = textarea.parentNode;
+	let parent2 = parent.parentNode;
+
+	// insert the flexbox container into the parent before the textarea
+	parent2.insertBefore(container, parent);
+
+	// add the button and the hidden file input to the flexbox container
+	container.appendChild(btn);
+	container.appendChild(fileInput);
+
+	// move the textarea into the flexbox container
+	container.appendChild(parent);
 }
 
 async function createWorker() {
 	const worker = await Tesseract.createWorker({
 		logger: (m) => {
-			// console.log(m);
+			// log(m);
 			if (m.status === "recognizing text") {
 				// Update progress bar width and text to display loading status and progress
 				progressBar = document.getElementById("image-to-text-progress-bar");
@@ -287,26 +369,25 @@ async function createWorker() {
 			}
 		},
 	});
-	await worker.loadLanguage(constants.workerLanguage);
-	await worker.initialize(constants.workerLanguage);
+	await worker.loadLanguage(CONSTANTS.workerLanguage);
+	await worker.initialize(CONSTANTS.workerLanguage);
 	await worker.setParameters({
-		preserve_interword_spaces: options.formatOutput ? "1" : "0",
+		preserve_interword_spaces: OPTIONS.formatOutput ? "1" : "0",
 	});
-	// console.log(worker);
 	return worker;
 }
 
 async function handleFile(file, worker) {
-	// console.log("handling the file");
+	// log("handling the file");
 
-	let textareaContainer = document.getElementById(constants.flexBoxContainerId);
-	// console.log(textareaContainer);
+	let textareaContainer = document.getElementById(CONSTANTS.textareaId).parentElement;
+	log(textareaContainer);
 	// Get the textarea element
 	let textarea = document.getElementById("prompt-textarea");
 
 	// check if the textarea exists
 	if (!textarea) {
-		// console.log("Textarea not found.");
+		// log("Textarea not found.");
 		return;
 	}
 
@@ -334,19 +415,19 @@ async function handleFile(file, worker) {
 	parent.insertBefore(progressBarContainer, textareaContainer);
 
 	(async () => {
-		// console.log(worker);
+		// log(worker);
 		let text = "";
-		if (options.formatOutput) {
+		if (OPTIONS.formatOutput) {
 			const { data } = await worker.recognize(file, { rectangle: true });
 			text = calculateIndentation(data);
 		} else {
 			const { data } = await worker.recognize(file);
 			text = data.text;
 		}
-		// console.log(data);
+		log(text);
 
 		// Get the textarea element
-		let textarea = document.getElementById(constants.textareaId);
+		let textarea = document.getElementById(CONSTANTS.textareaId);
 
 		// If the textarea exists, set its value to the recognized text
 		if (textarea) {
@@ -358,7 +439,7 @@ async function handleFile(file, worker) {
 			// Set cursor position at the end of the text
 			textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
 		} else {
-			// console.log("Textarea not found.");
+			log("Textarea not found.");
 		}
 	})();
 }
