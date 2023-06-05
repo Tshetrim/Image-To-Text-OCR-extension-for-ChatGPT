@@ -15,6 +15,7 @@ const options = {
 	showUploadButton: true,
 	enableDirectPasting: true,
 	useThirdPartyOCR: false,
+	theme: "default-mode",
 };
 
 getStorageData(Object.keys(options))
@@ -22,8 +23,14 @@ getStorageData(Object.keys(options))
 		// If options are not set in storage, use default values
 		Object.keys(options).forEach((optionKey) => {
 			options[optionKey] = result.hasOwnProperty(optionKey) ? result[optionKey] : options[optionKey];
-			// Set checkbox state
-			document.getElementById(optionKey).checked = options[optionKey];
+
+			if (optionKey === "theme") {
+				// Set the selected option in the dropdown
+				document.getElementById("theme").value = options[optionKey];
+			} else {
+				// Set checkbox state
+				document.getElementById(optionKey).checked = options[optionKey];
+			}
 		});
 	})
 	.catch((error) => {
@@ -31,9 +38,16 @@ getStorageData(Object.keys(options))
 	});
 
 document.getElementById("save-button").addEventListener("click", function () {
-	// Get current checkbox states
+	// Get current states
 	Object.keys(options).forEach((optionKey) => {
-		options[optionKey] = document.getElementById(optionKey).checked;
+		if (optionKey === "theme") {
+			// Get the selected option in the dropdown (for dropdown options)
+			let e = document.getElementById("theme");
+			options[optionKey] = e.options[e.selectedIndex].value;
+		} else {
+			// Get checkbox states (for boolean options)
+			options[optionKey] = document.getElementById(optionKey).checked;
+		}
 	});
 
 	// Save options to chrome's local storage

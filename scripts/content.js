@@ -3,6 +3,7 @@ const OPTIONS = {
 	showUploadButton: true,
 	enableDirectPasting: true,
 	useThirdPartyOCR: false,
+	theme: "default-mode",
 };
 
 const CONSTANTS = {
@@ -11,11 +12,13 @@ const CONSTANTS = {
 	textareaId: "prompt-textarea",
 	uploadButtonID: "upload-button-image-to-text-extension",
 	uploadButtonBGColor: "#343640",
+	lightModeUploadButtonIcon: "images/upload-icon-dark.png",
+	darkModeUploadButtonIcon: "images/upload-icon-light.png",
 	flexBoxContainerId: "flexbox-container-image-to-text-extension",
 };
 
 const CONFIG = {
-	debug: false, // set this to false for production
+	debug: true, // set this to false for production
 };
 
 function log() {
@@ -230,14 +233,19 @@ function addUploadButton() {
 
 	// set button's icon as an image
 	let btnIcon = document.createElement("img");
-	btnIcon.src = chrome.runtime.getURL("images/upload-icon-light.png"); // change to your image path
+
+	if (OPTIONS.theme === "light-mode") {
+		btnIcon.src = chrome.runtime.getURL(CONSTANTS.lightModeUploadButtonIcon);
+	} else {
+		btnIcon.src = chrome.runtime.getURL(CONSTANTS.darkModeUploadButtonIcon);
+	}
 	btnIcon.alt = "Upload image";
 	btnIcon.style.height = "24px";
 	btnIcon.style.width = "24px";
 	btn.appendChild(btnIcon);
 
 	// style the button
-	btn.style.backgroundColor = CONSTANTS.uploadButtonBGColor; // dark blue background 
+	btn.style.backgroundColor = OPTIONS.theme === "default-theme" ? CONSTANTS.uploadButtonBGColor : "transparent"; // dark blue background
 	btn.style.border = "none";
 	btn.style.cursor = "pointer";
 	btn.style.outline = "none";
@@ -245,6 +253,7 @@ function addUploadButton() {
 	btn.style.marginRight = "10px"; // add some margin to separate from the textarea
 	btn.style.zIndex = "1";
 	btn.style.height = textarea.height;
+	btn.style.maxHeight = "40px";
 
 	// create a hidden file input
 	let fileInput = document.createElement("input");
