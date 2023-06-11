@@ -112,12 +112,12 @@ const OPTIONS = {
 	enableDirectPasting: true,
 	useThirdPartyOCR: false,
 	theme: "default-mode",
-	showInitialLoadingMessage: false,
+	showInitialLoadingMessage: true,
 };
 
 const CONSTANTS = {
 	scriptId: "image-to-text-content-script",
-	workerLanguage: ["eng", "jpn"],
+	workerLanguage: ["eng"],
 	textareaId: "prompt-textarea",
 	uploadButtonID: "upload-button-image-to-text-extension",
 	uploadButtonBGColor: "#343640",
@@ -129,7 +129,7 @@ const CONSTANTS = {
 };
 
 const CONFIG = {
-	debug: true, // set this to false for production
+	debug: false, // set this to false for production
 };
 
 function log() {
@@ -960,13 +960,14 @@ function insertLoadingMessage(text) {
 	message.style.left = "50%";
 	message.style.transform = "translate(-50%, -50%)";
 	message.style.padding = "20px";
-	message.style.backgroundColor = "#fff";
-	message.style.color = "#000";
+	message.style.backgroundColor = "#f8f9fa"; // Neutral gray
+	message.style.color = "#212529"; // Dark gray
 	message.style.borderRadius = "10px";
 	message.style.zIndex = "10000";
 	message.style.width = "300px";
 	message.style.textAlign = "center";
 	message.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.1)";
+	message.style.border = "1px solid #e3e6f0"; // Border color
 
 	// Create the close button
 	let closeButton = document.createElement("button");
@@ -1000,6 +1001,36 @@ function insertLoadingMessage(text) {
 	let progress = document.createElement("div");
 	progress.id = "loadingMessageProgress";
 	progress.style.marginTop = "10px";
+	progress.style.fontWeight = "bold"; // Bold progress text
+
+	// Create the loading spinner
+	let loader = document.createElement("div");
+	loader.style.border = "16px solid #f3f3f3";
+	loader.style.borderTop = "16px solid #3498db";
+	loader.style.borderRadius = "50%";
+	loader.style.width = "60px";
+	loader.style.height = "60px";
+	loader.style.position = "relative";
+	loader.style.margin = "0 auto"; // Center the spinner
+
+	// Initialize the degree
+	let degree = 0;
+
+	// Use setInterval function for rotation
+	let spinner = setInterval(function () {
+		loader.style.transform = `rotate(${degree}deg)`;
+		degree = (degree + 1) % 360; // Increase the degree
+	}, 10); // Update every 10 milliseconds
+
+	message.appendChild(loader); // Add loader spinner to message
+
+	// Create the info node
+	let infoNode = document.createElement("div");
+	infoNode.id = "loadingMessageInfo";
+	infoNode.textContent = "Note: To permanently disable this loading screen, check the extension options.";
+	infoNode.style.marginTop = "20px";
+	infoNode.style.fontSize = "12px"; // Smaller font for info message
+	infoNode.style.color = "#6c757d"; // Gray color for info message
 
 	// Append the close button, text node and progress element to the message
 	message.appendChild(closeButton);
@@ -1007,6 +1038,8 @@ function insertLoadingMessage(text) {
 	message.appendChild(preTextNode);
 	message.appendChild(textNode);
 	message.appendChild(progress);
+	message.appendChild(loader);
+	message.appendChild(infoNode);
 
 	// Add the message to the body
 	document.body.appendChild(message);

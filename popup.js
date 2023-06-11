@@ -17,7 +17,7 @@ const options = {
 	enableDirectPasting: true,
 	useThirdPartyOCR: false,
 	theme: "default-mode",
-	showInitialLoadingMessage: false,
+	showInitialLoadingMessage: true,
 };
 
 getStorageData(Object.keys(options))
