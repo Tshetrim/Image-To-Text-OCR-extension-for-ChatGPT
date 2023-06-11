@@ -9,7 +9,7 @@
 				padding: 0;
 				background-color: #f0f0f0;
 			}
-			h1 {
+			h2 {
 				color: #333;
 				background-color: #f9f9f9;
 				padding: 15px;
@@ -47,14 +47,14 @@
 				width: 100%;
 				background-color: #f9f9f9;
 				border-top: 1px solid #ddd;
-				padding: 10px 0;
+				padding: 2px 0;
 				text-align: center;
 			}
 			.footer-button {
 				background-color: #1a576b;
 				border: none;
 				color: white;
-				padding: 10px 20px;
+				padding: 5px 20px;
 				text-align: center;
 				text-decoration: none;
 				display: inline-block;
@@ -69,7 +69,7 @@
 				justify-content: space-between;
 			}
 			.footer-button svg {
-				margin-left: 10px; 
+				margin-left: 10px;
 			}
 			.footer-button:hover {
 				background-color: white;
@@ -78,7 +78,7 @@
 		</style>
 	</head>
 	<body>
-		<h1>Image to Text for ChatGPT</h1>
+		<h2>Image to Text for ChatGPT</h2>
 		<form>
 			<h3>Options:</h3>
 			<div class="checkbox-option">
@@ -90,12 +90,20 @@
 				<label for="show-upload-button">Show Upload Button</label><br />
 			</div>
 			<div class="checkbox-option">
+				<input type="checkbox" id="showLanguageButton" name="show-language-button" />
+				<label for="show-language-button">Show Pick Language Button</label><br />
+			</div>
+			<div class="checkbox-option">
 				<input type="checkbox" id="enableDirectPasting" name="enable-direct-pasting" />
 				<label for="enable-direct-pasting">Enable Direct Image Pasting</label><br />
 			</div>
 			<div class="checkbox-option">
 				<input type="checkbox" id="useThirdPartyOCR" name="use-third-party-ocr" />
 				<label for="use-third-party-ocr">Use outside advanced code-from-screenshot parser</label><br />
+			</div>
+			<div class="checkbox-option">
+				<input type="checkbox" id="showInitialLoadingMessage" name="show-initial-loading-message" />
+				<label for="show-initial-loading-message">Allow show inital loading status</label><br />
 			</div>
 			<h3>Theme:</h3>
 			<select id="theme" name="theme">

@@ -13,9 +13,11 @@ function getStorageData(keys) {
 const options = {
 	formatOutput: true,
 	showUploadButton: true,
+	showLanguageButton: true,
 	enableDirectPasting: true,
 	useThirdPartyOCR: false,
 	theme: "default-mode",
+	showInitialLoadingMessage: false,
 };
 
 getStorageData(Object.keys(options))
