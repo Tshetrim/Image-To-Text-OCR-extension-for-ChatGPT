@@ -3,13 +3,14 @@ Currently out now on the Chrome Extension Store!
 https://chrome.google.com/webstore/detail/image-to-text-for-chatgpt/kihikabndlcbnpbgjapkhlonoddholga?hl=en&authuser=0
 
 # Demo-Video:
-https://www.youtube.com/watch?v=r524G5Vjrz4
+[https://www.youtube.com/watch?v=r524G5Vjrz4](https://www.youtube.com/watch?v=KzUO-dU4-n0)
 
 # Discord:
 https://discord.gg/8hnkBhwTJ5
 
 # Product-Description
-Add OCR Image to Text to ChatGPT
+Update: Now supports 100+ Languages! 
+
 This extension was born out of a need for a fast, quick and intuitive way to get text from images into the textbox for ChatGPT. This extension accomplishes this with a great degree of accuracy and average speeds of ~5 seconds or less. 
 
 Now, you don't have to switch between multiple tools just for Optical Character Recognition (OCR). With this extension, you can easily upload an image file for conversion into text, which will automatically populate your ChatGPT textbox.
@@ -30,3 +31,4 @@ https://discord.gg/8hnkBhwTJ5
 Disclaimer: Please note, if you opt to use the third-party embedded option, your privacy and data handling will be subject to their policy as this extension is not affiliated with them.
 
 Invest in your productivity today with our Chrome GPT extension, and experience the future of text transcription!
+
