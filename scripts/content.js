@@ -110,6 +110,7 @@ const OPTIONS = {
 	showUploadButton: true,
 	showLanguageButton: true,
 	enableDirectPasting: true,
+	enableDragAndDrop: true,
 	useThirdPartyOCR: false,
 	theme: "default-mode",
 	showInitialLoadingMessage: true,
@@ -281,10 +282,11 @@ async function addExtensionElements(initial = true) {
 	if (OPTIONS.showUploadButton) addUploadButton();
 	if (OPTIONS.showLanguageButton) addLanguageSelectButton();
 	if (OPTIONS.enableDirectPasting) addPasteListener();
-	if (OPTIONS.useThirdPartyOCR) addCodeIframe();
+	if (OPTIONS.enableDragAndDrop) addDragAndDrop();
+	if (OPTIONS.useThirdPartyOCR) addThirdPartyOptionalEngine();
 }
 
-function addCodeIframe() {
+function addThirdPartyOptionalEngine() {
 	// get the textarea element
 	let textarea = document.getElementById(CONSTANTS.textareaId);
 
@@ -361,6 +363,94 @@ function addPasteListener() {
 		textarea.addEventListener("paste", handlePaste);
 		textarea.hasPasteListener = true;
 	}
+}
+
+function addDragAndDrop() {
+	let body = document.body;
+	let overlay = document.createElement("div");
+	overlay.id = "img-to-text-drag-and-drop-overlay";
+
+	overlay.style.position = "fixed";
+	overlay.style.top = "0";
+	overlay.style.left = "0";
+	overlay.style.width = "100%";
+	overlay.style.height = "100%";
+	overlay.style.zIndex = "1000";
+	overlay.style.display = "none";
+	overlay.style.backgroundColor = "rgba(70,130,180,0.3)"; // semi-transparent blue
+
+	body.appendChild(overlay);
+
+	// Add the drag and drop event listeners to the overlay of the page
+	overlay.addEventListener("dragenter", dragEnterHandler, false);
+	overlay.addEventListener("dragover", dragOverHandler, false);
+	overlay.addEventListener("drop", dropHandler, false);
+	overlay.addEventListener("dragleave", dragLeaveHandler, false);
+
+	// Show the overlay when the user starts dragging a file over the body
+	document.body.addEventListener(
+		"dragenter",
+		function (e) {
+			e.preventDefault();
+			overlay.style.display = "block";
+			log("drag enter");
+		},
+		false
+	);
+}
+
+function dragEnterHandler(e) {
+	e.preventDefault();
+	let overlay = document.querySelector("#img-to-text-drag-and-drop-overlay");
+	overlay.style.display = "block"; // Show the overlay when dragging over
+	log("drag enter");
+}
+
+function dragOverHandler(e) {
+	e.preventDefault();
+	log("drag over");
+}
+
+function dropHandler(e) {
+	e.preventDefault();
+	let overlay = document.querySelector("#img-to-text-drag-and-drop-overlay");
+	overlay.style.display = "none"; // Hide the overlay when dragging leaves
+
+	if (e.dataTransfer.items) {
+		// Use DataTransferItemList interface to access the file(s)
+		for (let i = 0; i < e.dataTransfer.items.length; i++) {
+			// If dropped items aren't files, reject them
+			if (e.dataTransfer.items[i].kind === "file") {
+				let file = e.dataTransfer.items[i].getAsFile();
+
+				// Check if the file is an image
+				if (file.type.startsWith("image/")) {
+					handleFile(file, worker);
+				} else {
+					log("File is not an image. Please drop an image file.");
+				}
+			}
+		}
+	} else {
+		// Use DataTransfer interface to access the file(s)
+		for (let i = 0; i < e.dataTransfer.files.length; i++) {
+			let file = e.dataTransfer.files[i];
+
+			// Check if the file is an image
+			if (file.type.startsWith("image/")) {
+				handleFile(file, worker);
+			} else {
+				log("File is not an image. Please drop an image file.");
+			}
+		}
+	}
+}
+
+function dragLeaveHandler(e) {
+	e.preventDefault();
+	let overlay = document.querySelector("#img-to-text-drag-and-drop-overlay");
+	overlay.style.display = "none"; // Hide the overlay when dragging leaves
+	log("drag leave");
 }
 
 function addUploadButton() {
@@ -572,7 +662,7 @@ async function handleFile(file, worker) {
 
 	// check if the textarea exists
 	if (!textarea) {
-		// log("Textarea not found.");
+		log("Textarea not found.");
 		return;
 	}
 

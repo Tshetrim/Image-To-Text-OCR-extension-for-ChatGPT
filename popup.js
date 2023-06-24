@@ -15,6 +15,7 @@ const options = {
 	showUploadButton: true,
 	showLanguageButton: true,
 	enableDirectPasting: true,
+	enableDragAndDrop: true,
 	useThirdPartyOCR: false,
 	theme: "default-mode",
 	showInitialLoadingMessage: true,
