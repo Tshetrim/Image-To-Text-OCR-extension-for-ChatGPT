@@ -488,20 +488,20 @@ function addUploadButton() {
 	btn.style.maxHeight = "40px";
 
 	// create a hidden file input
-	let fileInput = document.createElement("input");
-	fileInput.type = "file";
-	fileInput.style.display = "none";
-	fileInput.accept = "image/*"; // accept only image files
-	fileInput.id = "hidden-file-input";
+	let hiddenFileInputButton = document.createElement("input");
+	hiddenFileInputButton.type = "file";
+	hiddenFileInputButton.style.display = "none";
+	hiddenFileInputButton.accept = "image/*"; // accept only image files
+	hiddenFileInputButton.id = "hidden-file-input";
 
 	// add an event listener to the button
 	btn.addEventListener("click", function () {
 		// trigger file input click when button is clicked
-		fileInput.click();
+		hiddenFileInputButton.click();
 	});
 
 	// add event listener to file input
-	fileInput.addEventListener("change", function () {
+	hiddenFileInputButton.addEventListener("change", function () {
 		log("file selected");
 		if (this.files && this.files[0]) {
 			// file is selected, handle it
@@ -514,29 +514,26 @@ function addUploadButton() {
 
 	// check if the textarea exists and add button
 	if (textarea) {
-		addButton(btn, fileInput);
-		// addButtonWithFlexBox(btn, fileInput);
+		addButtonToDOM(btn);
+		addButtonToDOM(hiddenFileInputButton);
 	} else {
 		log("Textarea not found.");
 	}
 }
 
-function addButton(btn, fileInput) {
+function addButtonToDOM(btn) {
 	let textarea = document.getElementById(CONSTANTS.textareaId);
 
 	// get the parent of the textarea
 	let parent = textarea.parentNode;
+
+	//get the textarea's parent's parent
 	let parent2 = parent.parentNode;
-	let parent3 = parent2.parentNode;
 
-	let container = parent3;
-	// insert the button and the hidden file input before the textarea
-	// container.appendChild(btn);
-	// container.appendChild(fileInput);
+	let container = parent2;
 
-	container.insertBefore(btn, parent2);
-	container.insertBefore(fileInput, parent2);
-	recenterButton(btn);
+	container.insertBefore(btn, parent);
+	// recenterButton(btn);
 }
 
 function recenterButton(btn) {
@@ -567,7 +564,7 @@ function addFlexBox() {
 	return container;
 }
 
-function addButtonWithFlexBox(btn, fileInput) {
+function addButtonWithFlexBox(btn, hiddenFileInputButton) {
 	let container = document.getElementById(CONSTANTS.flexBoxContainerId) || addFlexBox();
 	let textarea = document.getElementById(CONSTANTS.textareaId);
 
@@ -580,7 +577,7 @@ function addButtonWithFlexBox(btn, fileInput) {
 
 	// add the button and the hidden file input to the flexbox container
 	container.appendChild(btn);
-	container.appendChild(fileInput);
+	container.appendChild(hiddenFileInputButton);
 
 	// move the textarea into the flexbox container
 	container.appendChild(parent);
@@ -1022,7 +1019,7 @@ function addLanguageSelectButton() {
 
 	// check if the textarea exists and add button
 	if (textarea) {
-		addLanguageSelectButtonToDOM(languageButton);
+		addButtonToDOM(languageButton);
 	} else {
 		log("Textarea not found.");
 	}
