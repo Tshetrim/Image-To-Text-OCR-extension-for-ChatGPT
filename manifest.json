@@ -30,5 +30,10 @@
 			"js": ["scripts/content.js", "scripts/tesseract.min.js"],
 			"matches": ["https://chat.openai.com/*"]
 		}
-	]
+	],
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "imageToTextGPT@tshdev.com"
+		}
+	}
 }
