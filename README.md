@@ -5,6 +5,7 @@ Currently out now on the Chrome Extension Store and Firefox!
 [![Firefox Download Badge](https://extensionworkshop.com/assets/img/documentation/publish/get-the-addon-178x60px.dad84b42.png)](https://addons.mozilla.org/en-US/firefox/addon/image-to-text-chatgpt/)
 
 Chrome Link: https://chrome.google.com/webstore/detail/image-to-text-for-chatgpt/kihikabndlcbnpbgjapkhlonoddholga?hl=en&authuser=0
+
 Firefox Link: https://addons.mozilla.org/en-US/firefox/addon/image-to-text-chatgpt/
 
 
