@@ -1,6 +1,13 @@
 # Image-To-Text-OCR-extension-for-ChatGPT
-Currently out now on the Chrome Extension Store! 
-https://chrome.google.com/webstore/detail/image-to-text-for-chatgpt/kihikabndlcbnpbgjapkhlonoddholga?hl=en&authuser=0
+Currently out now on the Chrome Extension Store and Firefox! 
+
+[![Chrome Download Badge](https://github-production-user-asset-6210df.s3.amazonaws.com/49722313/263314841-d42bdf5a-5c75-4a84-80d3-344a97b36978.png)](https://chrome.google.com/webstore/detail/image-to-text-for-chatgpt/kihikabndlcbnpbgjapkhlonoddholga)
+[![Firefox Download Badge](https://extensionworkshop.com/assets/img/documentation/publish/get-the-addon-178x60px.dad84b42.png)](https://addons.mozilla.org/en-US/firefox/addon/image-to-text-chatgpt/)
+
+Chrome Link: https://chrome.google.com/webstore/detail/image-to-text-for-chatgpt/kihikabndlcbnpbgjapkhlonoddholga?hl=en&authuser=0
+
+Firefox Link: https://addons.mozilla.org/en-US/firefox/addon/image-to-text-chatgpt/
+
 
 # Demo-Video:
 [https://www.youtube.com/watch?v=r524G5Vjrz4](https://www.youtube.com/watch?v=KzUO-dU4-n0)
