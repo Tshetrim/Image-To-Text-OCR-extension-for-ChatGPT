@@ -1,108 +1,15 @@
 let LANGUAGES = {
-	"Orientation and script detection": "osd",
-	"Math / equation detection": "equ",
-	Afrikaans: "afr",
-	Amharic: "amh",
 	Arabic: "ara",
-	Assamese: "asm",
-	Azerbaijani: "aze",
-	"Azerbaijani - Cyrillic": "aze_cyrl",
-	Belarusian: "bel",
-	Bengali: "ben",
-	Tibetan: "bod",
-	Bosnian: "bos",
-	Bulgarian: "bul",
-	"Catalan; Valencian": "cat",
-	Cebuano: "ceb",
-	Czech: "ces",
 	"Chinese - Simplified": "chi_sim",
 	"Chinese - Traditional": "chi_tra",
-	Cherokee: "chr",
-	Welsh: "cym",
-	Danish: "dan",
 	German: "deu",
-	Dzongkha: "dzo",
-	"Greek, Modern (1453-)": "ell",
 	English: "eng",
-	"English, Middle (1100-1500)": "enm",
-	Esperanto: "epo",
-	Estonian: "est",
-	Basque: "eus",
-	Persian: "fas",
-	Finnish: "fin",
 	French: "fra",
-	"German Fraktur": "frk",
-	"French, Middle (ca. 1400-1600)": "frm",
-	Irish: "gle",
-	Galician: "glg",
-	"Greek, Ancient (-1453)": "grc",
-	Gujarati: "guj",
-	"Haitian; Haitian Creole": "hat",
-	Hebrew: "heb",
 	Hindi: "hin",
-	Croatian: "hrv",
-	Hungarian: "hun",
-	Inuktitut: "iku",
-	Indonesian: "ind",
-	Icelandic: "isl",
-	Italian: "ita",
-	"Italian - Old": "ita_old",
-	Javanese: "jav",
 	Japanese: "jpn",
-	Kannada: "kan",
-	Georgian: "kat",
-	"Georgian - Old": "kat_old",
-	Kazakh: "kaz",
-	"Central Khmer": "khm",
-	"Kirghiz; Kyrgyz": "kir",
 	Korean: "kor",
-	Kurdish: "kur",
-	Lao: "lao",
-	Latin: "lat",
-	Latvian: "lav",
-	Lithuanian: "lit",
-	Malayalam: "mal",
-	Marathi: "mar",
-	Macedonian: "mkd",
-	Maltese: "mlt",
-	Malay: "msa",
-	Burmese: "mya",
-	Nepali: "nep",
-	"Dutch; Flemish": "nld",
-	Norwegian: "nor",
-	Oriya: "ori",
-	"Panjabi; Punjabi": "pan",
-	Polish: "pol",
 	Portuguese: "por",
-	"Pushto; Pashto": "pus",
-	"Romanian; Moldavian; Moldovan": "ron",
 	Russian: "rus",
-	Sanskrit: "san",
-	"Sinhala; Sinhalese": "sin",
-	Slovak: "slk",
-	Slovenian: "slv",
-	"Spanish; Castilian": "spa",
-	"Spanish; Castilian - Old": "spa_old",
-	Albanian: "sqi",
-	Serbian: "srp",
-	"Serbian - Latin": "srp_latn",
-	Swahili: "swa",
-	Swedish: "swe",
-	Syriac: "syr",
-	Tamil: "tam",
-	Telugu: "tel",
-	Tajik: "tgk",
-	Tagalog: "tgl",
-	Thai: "tha",
-	Tigrinya: "tir",
-	Turkish: "tur",
-	"Uighur; Uyghur": "uig",
-	Ukrainian: "ukr",
-	Urdu: "urd",
-	Uzbek: "uzb",
-	"Uzbek - Cyrillic": "uzb_cyrl",
-	Vietnamese: "vie",
-	Yiddish: "yid",
 };
 
 const OPTIONS = {
@@ -130,7 +37,7 @@ const CONSTANTS = {
 };
 
 const CONFIG = {
-	debug: false, // set this to false for production
+	debug: true, // set this to false for production
 };
 
 function log() {
@@ -251,6 +158,7 @@ async function initialize() {
 			script.onload = async function () {
 				log("Loaded script");
 				log(script.src);
+
 				try {
 					await addExtensionElements((initial = true));
 					resolve();
@@ -585,6 +493,9 @@ function addButtonWithFlexBox(btn, hiddenFileInputButton) {
 
 async function createWorker() {
 	const worker = await Tesseract.createWorker({
+		workerPath: chrome.runtime.getURL("scripts/tesseract.js@v4.0.3_dist_worker.min.js"),
+		corePath: chrome.runtime.getURL("scripts/tesseract.js-core@4.0.3_tesseract-core-simd.wasm.js"),
+		langPath: chrome.runtime.getURL("scripts/languages/"),
 		logger: (m) => {
 			log(m);
 			if (m.status === "recognizing text") {
@@ -619,11 +530,7 @@ async function createWorker() {
 					insertLoadingMessage("Initializing Image to Text Engine Please wait...");
 				}
 
-				updateLoadingMessage(
-					m.status,
-					m.progress,
-					"Please wait... This could take a while if the language is not installed."
-				);
+				updateLoadingMessage(m.status, m.progress, "Please wait... Grabbing language files... This could take a while.");
 
 				if (m.status === "initialized api" && m.progress === 1) {
 					removeLoadingMessage();

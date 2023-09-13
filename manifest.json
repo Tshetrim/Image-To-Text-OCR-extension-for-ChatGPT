@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Image to Text for ChatGPT",
-	"version": "0.0.0.7",
+	"version": "0.0.0.8",
 	"description": "Add OCR Image to Text to ChatGPT",
 	"action": {
 		"default_popup": "popup.html",
@@ -17,7 +17,7 @@
 	},
 	"web_accessible_resources": [
 		{
-			"resources": ["scripts/tesseract.min.js", "images/*"],
+			"resources": ["scripts/*", "images/*"],
 			"matches": ["https://chat.openai.com/*"],
 			"use_dynamic_url": true
 		}
