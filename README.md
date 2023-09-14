@@ -26,8 +26,18 @@ https://discord.gg/8hnkBhwTJ5
 ]([url](https://github.com/naptha/tesseract.js/blob/master/docs/api.md#worker-load-language)) method fetches the trainedData files from their CDNs if its not already in cache and saves it into Chrome's IndexedDB storage. This makes it convienient for users loading languages, but it also means featching and downloading it can take a while for some languages. 
 - The content.js and tesseract.min.js file are specified as content scripts in the manifest v3 file and get auto injected on page refesh by chrome. 
 
+# Important Note due to CSP Restrictions and Regarding Language Support 
+The ChatGPT website finally added CSP restrictions (August 2023) which block fetching language files from Tesseract.js CDNs. What this means is that the 100+ languages there were able to be picked and downloaded on a need basis is no longer easily possible. As a compromise, I picked out a dozen languages that have had the most use and engangement and they now are packed inside the extension, it should cover for more than 95% of usecases. 
+
+In addition, I also bundled the worker and core files since they also can no longer be fetched from the CDN at runtime. This means that the total size of the extension has comparatively greatly increased. Fortunately, other than a slower initial download size of the actual extension, performance should remain the same and the extension still works as before. 
+
+Version 0.0.0.7 was the last version with CDN fetching, it is saved on a separate branch or can be referenced through the commit history for anyone that would like to reference that code. It should still work as long as the target website does not have CSP policies blocking external scripts. 
+
+Version 0.0.0.8 and on will bundle the necessary files for the extension to run appropriately. 
+
+
 # Product-Description
-Update: Now supports 100+ Languages! 
+Update: Supports 12+ Major Languages! 
 Full Tutorial Video: https://www.youtube.com/watch?v=zob0us4bPc8
 
 This extension was born out of a need for a fast, quick and intuitive way to get text from images into the textbox for ChatGPT. This extension accomplishes this with a great degree of accuracy and average speeds of ~5 seconds or less. 
