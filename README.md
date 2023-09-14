@@ -1,3 +1,5 @@
+### Note: This is the last version prior to ChatGPT implementing CSP that prevents loading the worker and language scripts from the CDN. The files now have to be packed with the extention instead of being able to be downloaded at runtime (see main). This branch remains as a reference to the prior version. 
+
 # Image-To-Text-OCR-extension-for-ChatGPT
 Currently out now on the Chrome Extension Store! 
 https://chrome.google.com/webstore/detail/image-to-text-for-chatgpt/kihikabndlcbnpbgjapkhlonoddholga?hl=en&authuser=0
