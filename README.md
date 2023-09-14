@@ -37,7 +37,7 @@ Version 0.0.0.8 and on will bundle the necessary files for the extension to run 
 
 
 # Product-Description
-Update: Supports 12+ Major Languages! 
+Update: Supports 10+ Major Languages! 
 Full Tutorial Video: https://www.youtube.com/watch?v=zob0us4bPc8
 
 This extension was born out of a need for a fast, quick and intuitive way to get text from images into the textbox for ChatGPT. This extension accomplishes this with a great degree of accuracy and average speeds of ~5 seconds or less. 
