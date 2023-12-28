@@ -6,6 +6,7 @@ let LANGUAGES = {
 	English: "eng",
 	French: "fra",
 	Hindi: "hin",
+	Italian: "ita",
 	Japanese: "jpn",
 	Korean: "kor",
 	Portuguese: "por",
@@ -492,9 +493,9 @@ function addButtonWithFlexBox(btn, hiddenFileInputButton) {
 }
 
 async function createWorker() {
-	const worker = await Tesseract.createWorker({
-		workerPath: chrome.runtime.getURL("scripts/tesseract.js@v4.0.3_dist_worker.min.js"),
-		corePath: chrome.runtime.getURL("scripts/tesseract.js-core@4.0.3_tesseract-core-simd.wasm.js"),
+	const worker = await Tesseract.createWorker(getSelectedLanguageCodes(), 1, {
+		workerPath: chrome.runtime.getURL("scripts/tesseract.js@v5.0.4_dist_worker.min.js"),
+		corePath: chrome.runtime.getURL("scripts/"),
 		langPath: chrome.runtime.getURL("scripts/languages/"),
 		logger: (m) => {
 			log(m);
@@ -530,16 +531,18 @@ async function createWorker() {
 					insertLoadingMessage("Initializing Image to Text Engine Please wait...");
 				}
 
-				updateLoadingMessage(m.status, m.progress, "Please wait... Grabbing language files... This could take a while.");
+				updateLoadingMessage(
+					m.status,
+					m.progress,
+					"Please wait... Grabbing language files... This could take a while."
+				);
 
-				if (m.status === "initialized api" && m.progress === 1) {
+				if (m.status === "initializing api" && m.progress === 1) {
 					removeLoadingMessage();
 				}
 			}
 		},
 	});
-	await worker.loadLanguage(getSelectedLanguageCodes());
-	await worker.initialize(getSelectedLanguageCodes());
 	await worker.setParameters({
 		preserve_interword_spaces: OPTIONS.formatOutput ? "1" : "0",
 	});
@@ -838,8 +841,7 @@ function addLanguageModal() {
 		log(selectedLanguages);
 
 		insertLoadingMessage("Reinitializing Engine Please wait...");
-		await worker.loadLanguage(getSelectedLanguageCodes());
-		await worker.initialize(getSelectedLanguageCodes());
+		await worker.reinitialize(getSelectedLanguageCodes(), 1);
 		removeLoadingMessage();
 		log("worker after new languages", worker);
 	});
