@@ -693,6 +693,13 @@ function addLanguageModal() {
 	});
 	modalContent.appendChild(closeButton);
 
+	// Create an information text node with a hyperlink regarding CSP policy change
+	let informationText = document.createElement("p");
+	informationText.innerHTML =
+		"<a target='_blank' rel='noopener noreferrer' href='https://github.com/Tshetrim/Image-To-Text-OCR-extension-for-ChatGPT#important-note-due-to-csp-restrictions-and-regarding-language-support'>🙇‍♂️ Due to reasons outside my control, languages had to be reduced from 100+ to 12 most used languages. Click here to read why.</a>";
+	informationText.style.color = "#0b2754";
+	modalContent.appendChild(informationText);
+
 	// Create the title
 	let title = document.createElement("h2");
 	title.style.color = "#000";
@@ -848,7 +855,7 @@ function addLanguageModal() {
 
 	// Create a text node
 	let disclaimerText = document.createElement("p");
-	disclaimerText.textContent = "Multiple languages can be picked at once though accuracy may decrease.";
+	disclaimerText.textContent = "⚠ Multiple languages can be picked at once though accuracy may decrease.";
 	disclaimerText.style.display = "inline"; // Display text in the same line
 	disclaimerText.style.marginLeft = "10px"; // Add some space to the left of the text
 	modalContent.appendChild(disclaimerText);
