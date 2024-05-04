@@ -38,7 +38,7 @@ const CONSTANTS = {
 };
 
 const CONFIG = {
-	debug: true, // set this to false for production
+	debug: false, // set this to false for production
 };
 
 function log() {

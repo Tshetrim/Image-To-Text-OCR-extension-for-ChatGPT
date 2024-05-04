@@ -1,14 +1,14 @@
 {
 	"manifest_version": 3,
 	"name": "Image to Text for ChatGPT",
-	"version": "0.0.0.9",
+	"version": "0.0.1.0",
 	"description": "Add OCR Image to Text to ChatGPT",
 	"action": {
 		"default_popup": "popup.html",
 		"default_icon": "icon.png"
 	},
 	"permissions": ["storage"],
-	"host_permissions": ["https://chat.openai.com/*"],
+	"host_permissions": ["https://chatgpt.com/*"],
 	"icons": {
 		"16": "images/icon-16.png",
 		"32": "images/icon-32.png",
@@ -18,7 +18,7 @@
 	"web_accessible_resources": [
 		{
 			"resources": ["scripts/*", "images/*"],
-			"matches": ["https://chat.openai.com/*"],
+			"matches": ["https://chatgpt.com/*"],
 			"use_dynamic_url": true
 		}
 	],
@@ -28,7 +28,7 @@
 	"content_scripts": [
 		{
 			"js": ["scripts/content.js", "scripts/tesseract.min.js"],
-			"matches": ["https://chat.openai.com/*"]
+			"matches": ["https://chatgpt.com/*"]
 		}
 	],
 	"browser_specific_settings": {
