@@ -52,6 +52,7 @@ let observer = new MutationObserver(function (mutations) {
 	// mutations is an array of MutationRecords
 	// we'll just check if it has any items
 	if (mutations.length) {
+		log("Mutation detected");
 		let textareaElement = document.getElementById(CONSTANTS.textareaId);
 		let shouldInitialize = false;
 		if (!textareaElement) {
@@ -67,7 +68,6 @@ let observer = new MutationObserver(function (mutations) {
 				shouldInitialize = true;
 			}
 		}
-
 		if (shouldInitialize) initialize();
 	}
 });
@@ -127,6 +127,7 @@ Promise.all([
 
 		// Start observing after initialization
 		observer.observe(document.body, observerConfig);
+		initialize(); // introduces a bit of a race condition right now because observer isnt detecting when clip button loads
 	})
 	.catch((error) => {
 		console.error("Error getting data from storage: ", error);
@@ -390,10 +391,9 @@ function addUploadButton() {
 	btn.style.border = "none";
 	btn.style.cursor = "pointer";
 	btn.style.outline = "none";
-	btn.style.padding = "5px";
-	btn.style.marginRight = "10px"; // add some margin to separate from the textarea
+	if (!OPTIONS.showLanguageButton) btn.style.marginRight = "10px"; // add some margin to separate from the textarea
 	btn.style.zIndex = "1";
-	btn.style.height = textarea.height;
+	btn.style.padding = "8px 0px 8px 8px";
 	btn.style.maxHeight = "40px";
 
 	// create a hidden file input
@@ -439,9 +439,11 @@ function addButtonToDOM(btn) {
 	//get the textarea's parent's parent
 	let parent2 = parent.parentNode;
 
-	let container = parent2;
+	let parent3 = parent2.parentNode;
 
-	container.insertBefore(btn, parent);
+	let container = parent3;
+
+	container.insertBefore(btn, parent2);
 	// recenterButton(btn);
 }
 
@@ -606,24 +608,43 @@ async function handleFile(file, worker) {
 			const { data } = await worker.recognize(file);
 			text = data.text;
 		}
-		log(text);
+		log("Tesseract Output:\n", text);
 
 		// Get the textarea element
 		let textarea = document.getElementById(CONSTANTS.textareaId);
 
 		// If the textarea exists, set its value to the recognized text
+		// Instead of directly manipulating textarea.value
 		if (textarea) {
-			textarea.value = textarea.value + text;
-
-			textarea.style.height = ""; // Reset the height
-			textarea.style.height = textarea.scrollHeight + "px"; // Set it to match the total content height
-
-			// Set cursor position at the end of the text
-			textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+			insertTextIntoTextArea(text, textarea);
 		} else {
 			log("Textarea not found.");
 		}
 	})();
+}
+
+function insertTextIntoTextArea(text, textarea) {
+	const placeholder = textarea.querySelector("p.placeholder");
+	if (placeholder) {
+		placeholder.remove();
+	}
+
+	// Create a new text node or element
+	const p = document.createElement("p");
+	p.textContent = text;
+
+	// Append to the contenteditable div
+	textarea.appendChild(p);
+
+	// Place the caret at the end
+	const range = document.createRange();
+	const selection = window.getSelection();
+	range.setStart(p, p.childNodes.length);
+	range.collapse(true);
+	selection.removeAllRanges();
+	selection.addRange(range);
+
+	textarea.focus();
 }
 
 function calculateIndentation(data) {
@@ -920,10 +941,9 @@ function addLanguageSelectButton() {
 	languageButton.style.border = "none";
 	languageButton.style.cursor = "pointer";
 	languageButton.style.outline = "none";
-	languageButton.style.padding = "5px";
+	languageButton.style.padding = "8px 0px 8px 8px";
 	languageButton.style.marginRight = "10px"; // add some margin to separate from the textarea
 	languageButton.style.zIndex = "1";
-	languageButton.style.height = textarea.height;
 	languageButton.style.maxHeight = "40px";
 
 	const [languageModal, modalContent, closeButton] = addLanguageModal();
